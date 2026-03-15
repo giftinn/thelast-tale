@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For You 🤍</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Cormorant+Garamond:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:'Inter',sans-serif;
+background:#0f0f10;
+height:100vh;
+overflow:hidden;
+}
+
+#app{
+height:100%;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.card{
+position:absolute;
+width:90%;
+max-width:420px;
+max-height:90vh;
+overflow:auto;
+background:#1a1a1d;
+border-radius:26px;
+padding:40px 32px;
+text-align:center;
+box-shadow:0 30px 70px rgba(0,0,0,.6);
+opacity:0;
+transform:scale(.94) translateY(40px);
+transition:.7s cubic-bezier(.19,1,.22,1);
+pointer-events:none;
+}
+
+.card::-webkit-scrollbar{width:6px}
+.card::-webkit-scrollbar-thumb{background:#3a3a40;border-radius:10px}
+
+.card.active{
+opacity:1;
+transform:scale(1) translateY(0);
+pointer-events:auto;
+}
+
+h1,h2{
+font-family:'DM Serif Display',serif;
+margin:0 0 14px;
+color:#f2f2f2;
+}
+
+p{
+font-size:15px;
+line-height:1.7;
+opacity:.85;
+color:#c7c7c7;
+}
+
+button{
+padding:12px 26px;
+border:none;
+border-radius:999px;
+background:#2e2e34;
+cursor:pointer;
+margin-top:18px;
+font-size:15px;
+transition:.25s;
+color:#f2f2f2;
+}
+
+button:hover{
+transform:scale(1.05);
+background:#3a3a40;
+box-shadow:0 10px 25px rgba(0,0,0,.6);
+}
+
+/* PIN */
+
+.pin-display{
+display:flex;
+justify-content:center;
+gap:12px;
+margin:25px 0;
+}
+
+.dot{
+width:18px;
+height:18px;
+border-radius:50%;
+border:2px solid #3a3a40;
+}
+
+.dot.fill{background:#9ca3af}
+
+.keypad{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:12px;
+}
+
+.keypad button{
+padding:16px;
+font-size:18px;
+border-radius:14px;
+}
+
+/* GAME */
+
+#options{
+display:flex;
+flex-direction:column;
+gap:12px;
+margin-top:20px;
+}
+
+#options button{
+background:#222226;
+border:1px solid #3a3a40;
+color:#f2f2f2;
+}
+
+.score-box{
+margin-top:22px;
+font-size:15px;
+letter-spacing:.5px;
+color:#c7c7c7;
+}
+
+#feedback{
+margin-top:14px;
+min-height:22px;
+font-size:14px;
+transition:.3s;
+color:#c7c7c7;
+}
+
+.correctAnim{
+animation:pop .4s ease;
+background:#2f2f35 !important;
+border-color:#9ca3af !important;
+}
+
+@keyframes pop{
+0%{transform:scale(.9)}
+60%{transform:scale(1.08)}
+100%{transform:scale(1)}
+}
+
+.wrongAnim{
+animation:shake .4s;
+background:#242428 !important;
+border-color:#5a5a63 !important;
+}
+
+@keyframes shake{
+25%{transform:translateX(-6px)}
+50%{transform:translateX(6px)}
+75%{transform:translateX(-4px)}
+}
+
+/* TIMER */
+
+.lovebox{
+background:linear-gradient(145deg,#1a1a1d,#222226);
+border-radius:22px;
+padding:20px;
+margin-bottom:25px;
+box-shadow:0 12px 35px rgba(0,0,0,.7);
+border:1px solid #2e2e34;
+}
+
+.timer-title{
+font-size:12px;
+letter-spacing:2px;
+opacity:.6;
+color:#c7c7c7;
+}
+
+.timer-display{
+font-family:'DM Serif Display',serif;
+font-size:28px;
+margin-top:8px;
+color:#f2f2f2;
+letter-spacing:1px;
+animation:pulse 2.5s infinite;
+}
+
+@keyframes pulse{50%{opacity:.5}}
+
+/* MEDIA */
+
+.reveal-box{
+margin:20px 0;
+aspect-ratio:16/9;
+display:flex;
+align-items:center;
+justify-content:center;
+border-radius:20px;
+border:2px dashed #3a3a40;
+cursor:pointer;
+background:#1a1a1d;
+transition:.3s;
+}
+
+.reveal-box:hover{transform:scale(1.02)}
+
+/* LETTER */
+
+.letter{
+margin-top:22px;
+font-family:'Cormorant Garamond',serif;
+font-size:18px;
+line-height:1.3;
+letter-spacing:.4px;
+text-align:left;
+color:#f2f2f2;
+opacity:.95;
+min-height:100px;
+animation:fadeInText 1.2s ease;
+white-space: pre-line;
+}
+
+.signature{
+margin-top:32px;
+text-align:right;
+font-family:'Playfair Display',serif;
+font-size:20px;
+letter-spacing:1px;
+color:#9ca3af;
+animation:fadeInText 1.8s ease;
+}
+
+@keyframes fadeInText{
+from{opacity:0;transform:translateY(10px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+/* HEART BACKGROUND */
+
+canvas{
+position:fixed;
+inset:0;
+z-index:-1;
+pointer-events:none;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+
+<audio id="bgm" src="" loop></audio>
+
+<div id="app">
+
+<!-- welcome -->
+<section class="card active">
+<h1>I have something</h1>
+<p>I have something to you<br>But you have to unlock it.</p>
+<button onclick="next()">Unlock</button>
+</section>
+
+<!-- pin -->
+<section class="card">
+<h2>Enter the code 🔐</h2>
+<p>Hint; 4 angka pertama</p>
+<div class="pin-display" id="pin"></div>
+
+<div class="keypad">
+<button onclick="press(1)">1</button>
+<button onclick="press(2)">2</button>
+<button onclick="press(3)">3</button>
+<button onclick="press(4)">4</button>
+<button onclick="press(5)">5</button>
+<button onclick="press(6)">6</button>
+<button onclick="press(7)">7</button>
+<button onclick="press(8)">8</button>
+<button onclick="press(9)">9</button>
+<button onclick="clearPin()">⌫</button>
+<button onclick="press(0)">0</button>
+<button onclick="checkPin()">✔</button>
+</div>
+</section>
+
+<!-- quiz -->
+<section class="card">
+<h2 id="question">Little game 🎮</h2>
+<p>Answer correctly to earn points 🤍</p>
+<div id="options"></div>
+
+<div class="score-box">
+Points: <span id="score">0</span> / 3
+</div>
+
+<p id="feedback"></p>
+</section>
+
+<!-- final -->
+<section class="card">
+
+<h1>For You</h1>
+<p>I think it’s time for me to say goodbye.
+
+I stayed longer than I probably should have, hoping things would get better. But somewhere along the way, I realized I’ve been trying to hold on to something that make me tired. I’m tired. Not angry, not full of hate but i just tired.
+
+Thank you for the moments we shared, and even the lessons that came from the hard parts. But I also understand something now, I was never meant to stay forever. Maybe I was only a temporary color in your life, a small shade that passed through your story for a while.
+
+Sometimes people come into our lives not to stay, but to leave something behind before they go. I hope one day you find the happiness you’re looking for, and I hope life treats you kindly. As for me, I’m choosing to let go and find peace again.
+
+So this is where I stop walking beside you.
+Goodbye, and thank you for everything.</p>
+
+
+<div id="letter" class="letter"></div>
+<div id="sign" class="signature"></div>
+
+</section>
+
+</div>
+
+<script>
+const cards=document.querySelectorAll('.card');
+let page=0;
+const music=document.getElementById("bgm");
+music.volume=0.4;
+let musicStarted=false;
+
+function show(){
+cards.forEach(c=>c.classList.remove('active'));
+cards[page].classList.add('active');
+if(page===3)startTimer();
+}
+
+function next(){
+page++;
+
+if(page===1 && !musicStarted){
+music.play();
+musicStarted=true;
+}
+
+show();
+if(page===2)loadQuestion();
+}
+
+/* PIN */
+let pinInput='';
+const correctPin='1234';
+const pinDisplay=document.getElementById("pin");
+
+function renderDots(){
+pinDisplay.innerHTML='';
+for(let i=0;i<4;i++){
+const d=document.createElement("div");
+d.className="dot"+(i<pinInput.length?" fill":"");
+pinDisplay.appendChild(d);
+}}
+renderDots();
+
+function press(n){if(pinInput.length<4){pinInput+=n;renderDots();}}
+function clearPin(){pinInput=pinInput.slice(0,-1);renderDots();}
+
+function checkPin(){
+if(pinInput===correctPin)next();
+else{
+pinDisplay.classList.add('shake');
+setTimeout(()=>pinDisplay.classList.remove('shake'),400);
+pinInput='';renderDots();
+}
+}
+
+/* QUIZ */
+const questions=[
+{q:"When did we first meet?",options:["January","February","March"],correct:2},
+{q:"What do I do when I miss you?",options:["Sleep","Text you","Pretend I'm fine"],correct:2},
+{q:"Who is me in your life",options:["Nothing","Your future","Someone who just walked onto your life and gave u some color"],correct:2}
+];
+
+let currentQ=0,score=0;
+const scoreEl=document.getElementById("score");
+const question=document.getElementById("question");
+const options=document.getElementById("options");
+const feedback=document.getElementById("feedback");
+
+function loadQuestion(){
+const q=questions[currentQ];
+question.textContent=q.q;
+options.innerHTML="";
+feedback.textContent="";
+q.options.forEach((opt,i)=>{
+const b=document.createElement("button");
+b.textContent=opt;
+b.onclick=()=>checkAnswer(i,b);
+options.appendChild(b);
+});
+}
+
+function checkAnswer(i,btn){
+const q=questions[currentQ];
+
+if(i===q.correct){
+score++;
+scoreEl.textContent=score;
+btn.classList.add("correctAnim");
+feedback.textContent="Correct 🤍";
+
+setTimeout(()=>{
+currentQ++;
+if(currentQ<questions.length){loadQuestion();}
+else{next();}
+},900);
+
+}else{
+btn.classList.add("wrongAnim");
+feedback.textContent="Oops nope — try again 💭";
+}
+}
+
+/* TIMER */
+function getDiff(start, timeZone){
+  const now = new Date(
+    new Date().toLocaleString("en-US",{ timeZone })
+  );
+  const diff = now - start;
+
+  return {
+    d: Math.floor(diff/86400000),
+    h: Math.floor(diff/3600000)%24,
+    m: Math.floor(diff/60000)%60,
+    s: Math.floor(diff/1000)%60
+  };
+}
+
+startTimer();
+
+/* REVEAL */
+function revealMemory(el){
+
+const text=`You made it here…
+
+I just wanna say happy birthday to my beautiful girl—you’re amazing, truly. I’m really sorry, love, that ever since my accident I haven’t had much time for you. I’ve been disappearing a lot and it’s been hard to make time, especially for things like sleep calls because I’ve been busy too. I’m really sorry about that. And I’m also sorry for giving your gift late ;
+
+I also wanna say thank you for everything you’ve done for me, it really means a lot. Thank you for always treating me so well, for listening to all my worries and my random stories. I’m really grateful because you’ve always been so patient with me and rarely get mad. You honestly treat me like a princess, and I appreciate that more than you know. Thank you, love.
+
+And because it’s your special day, I hope all your wishes come true one by one, that you’re always surrounded by good things and kept away from anything bad. I hope all your goals and dreams come true and that you succeed in everything you’re working toward now and in the future. And I just want you to remember—you’re never alone. You’re surrounded by people who love you, especially me, who will always be here as your safe place. Stay happy, love. Don’t be sad, don’t push yourself too hard. I hope every problem you face always finds its way to a solution and becomes easier for you. 🤍`;
+
+let i=0;
+const letter=document.getElementById("letter");
+const sign=document.getElementById("sign");
+
+const type=setInterval(()=>{
+letter.innerHTML+=text.charAt(i);
+i++;
+if(i>=text.length){
+clearInterval(type);
+sign.innerHTML="Sincerely,<br>Me";
+}
+},35);
+}
+
+/* HEARTS */
+const canvas=document.getElementById("confettiCanvas");
+const ctx=canvas.getContext("2d");
+canvas.width=innerWidth;
+canvas.height=innerHeight;
+
+const colors=[
+"rgba(86,28,36,0.35)",   // dark maroon
+"rgba(109,41,50,0.35)",  // main maroon
+"rgba(142,59,70,0.35)"   // soft maroon
+];
+
+let hearts=[];
+for(let i=0;i<140;i++){
+hearts.push({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
+s:Math.random()*6+2,
+v:Math.random()*0.6+0.2,
+c:colors[Math.floor(Math.random()*colors.length)]
+});
+}
+
+function heart(x,y,s){
+ctx.beginPath();
+ctx.moveTo(x,y);
+ctx.bezierCurveTo(x,y-s,x-s,y-s,x-s,y);
+ctx.bezierCurveTo(x-s,y+s,x,y+s*1.4,x,y+s*1.8);
+ctx.bezierCurveTo(x,y+s*1.4,x+s,y+s,x+s,y);
+ctx.bezierCurveTo(x+s,y-s,x,y-s,x,y);
+ctx.fill();
+}
+
+function anim(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+ctx.shadowColor="rgba(109,41,50,0.6)";
+ctx.shadowBlur=12;
+
+hearts.forEach(h=>{
+ctx.fillStyle=h.c;
+heart(h.x,h.y,h.s);
+h.y+=h.v;
+if(h.y>canvas.height){
+h.y=-90;
+h.x=Math.random()*canvas.width;
+}
+});
+
+requestAnimationFrame(anim);
+}
+anim();
+</script>
+
+</body>
+</html>
